@@ -40,7 +40,7 @@ class Solution:
                         left += 1
                     right -= 1
                     # 跳過跟剛剛用過的 right 值相同的新值
-                    while left < right and arr[right] == arr[right - 1]:
+                    while left < right and arr[right] == arr[right + 1]:
                         right -= 1
                 elif arr[left] + arr[right] > -arr[i]:
                     right -= 1
