@@ -1,22 +1,36 @@
 # 84 - Largest Rectangle In Histogram
 # https://leetcode.com/problems/largest-rectangle-in-histogram/
 # Hard | Stack (Monotonic Stack)
-# 思路: 用 stack 存 (start_index, height) 的 pair,start_index 代表這個高度
-# 往左最遠可以延伸到的起始位置,stack 由底到頂維持高度遞增。
-# 逐一掃描 heights,對於每一根新柱子 (i, h):
-# start 先設成 i 自己。
-# 用 while 迴圈檢查:只要 stack 不是空的、且 stack top 的高度大於 h,
-# 代表 stack top 那根柱子(以自己高度為準的矩形)不能再往右延伸了
-# (因為新柱子比較矮,撐不住 stack top 那個高度),所以要 pop 出來結算面積:
-# 寬度 = i - index(被 pop 那個的 start_index),面積 = height * 寬度,更新 maxArea。
-# 並把 start 更新成被 pop 掉那個的 index(繼承左邊界,因為新柱子雖然比較矮,
-# 但它的「勢力範圍」可以往左延伸到被吞併那些柱子的起點)。
-# 這個 while 迴圈會連續 pop,直到 stack top 不再比新柱子高,或 stack 空了為止,
-# 才把 (start, h) push 進 stack。
-# 迴圈跑完整個 heights 之後,stack 裡可能還剩下一些柱子——這些柱子右邊沒有
-# 遇到比它們矮的,代表可以一路延伸到陣列最右邊。這時候要把 stack 清空,
-# 這次「右邊界」固定用 len(heights)(因為迴圈已經跑完,沒有新的 i 可以用),
-# 依序 pop 出來計算面積並更新 maxArea。
+# 思路：
+# stack 存 (start_index, height)，其中 start_index 表示這個高度最早可以開始的位置。
+# 從左到右掃描每根柱子：
+# 1. 先假設這根柱子的起點就是自己，所以 start = i。
+# 2. 如果目前柱子比 stack 最上面的柱子矮，
+#    代表 stack 最上面的柱子已經不能再往右延伸了，
+#    因為遇到了一根更矮的柱子。
+#
+# 3. 因此把它 pop 出來，計算它的最大面積：
+#       高 = 被 pop 的 height
+#       寬 = i - start_index
+#       面積 = height × width
+#    更新 maxArea。
+# 4. 被 pop 的柱子原本可以延伸到更左邊，
+#    而現在這根較矮的柱子其實也可以覆蓋那一段，
+#    所以把 start 更新成被 pop 的 start_index，
+#    讓新的柱子繼承它的左邊界。
+# 5. 持續 pop，直到 stack 為空，
+#    或 stack 最上面的高度 <= 目前柱子高度，
+#    再把 (start, h) 放進 stack。
+#
+# 掃描完成後，stack 裡剩下的柱子代表：
+# 它們一路都沒有遇到更矮的柱子，
+# 所以可以一直延伸到陣列最後。
+#
+# 因此再把 stack 中每根柱子的面積補算一次：
+#    高 = height
+#    寬 = len(heights) - start_index
+# 更新 maxArea。
+#
 # 最後回傳 maxArea。
 # Pattern 筆記: 這題的 pattern 是 monotonic stack 集大成應用,同時追蹤
 # 左邊界(繼承被吞併柱子的起點)和右邊界(觸發 pop 的當下 index),
