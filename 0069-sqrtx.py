@@ -24,7 +24,7 @@ class Solution:
         right = x  # 答案可能範圍的上界
         while left <= right:  # 左右邊界還沒交叉就繼續找
             middle = (left + right) // 2  # 取中間值作為猜測的答案
-            if middle ** 2 > x:  # 猜的數字平方大於 x，猜大了
+            if middle * middle > x:  # 猜的數字平方大於 x，猜大了
                 right = middle - 1
             else:  # 猜的數字平方小於等於 x，猜的還不夠大
                 left = middle + 1
