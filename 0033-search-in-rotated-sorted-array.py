@@ -8,7 +8,8 @@
 # left 設 0，right 設 len(nums) - 1，用 while left <= right 持續搜尋。
 # 每一輪先檢查 nums[middle] 是否等於 target，是的話直接回傳 middle。
 # 如果 nums[middle] > nums[right]，代表左半邊（left 到 middle）是正常排序的：
-#   檢查 target 是否落在 nums[left] 到 nums[middle] 之間，是的話代表 target 在左半邊，right 移到 middle；
+#   檢查 target 是否落在 nums[left] 到 nums[middle] 之間（嚴格小於 middle，因為已排除相等的情況），
+#   是的話代表 target 在左半邊，right 移到 middle - 1；
 #   否則代表 target 在右半邊，left 移到 middle + 1。
 # 否則（nums[middle] <= nums[right]），代表右半邊（middle 到 right）是正常排序的：
 #   檢查 target 是否落在 nums[middle] 到 nums[right] 之間，是的話代表 target 在右半邊，left 移到 middle + 1；
@@ -34,7 +35,7 @@ class Solution:
                 return middle
             elif nums[middle] > nums[right]:  # 左半邊是正常排序的
                 if nums[left] <= target < nums[middle]:  # target 在左半邊範圍內
-                    right = middle
+                    right = middle - 1
                 else:  # target 在右半邊
                     left = middle + 1
             else:  # 右半邊是正常排序的
