@@ -4,7 +4,7 @@
 # 類型：Binary Search
 
 # 思路：
-# 這題分三個步驟：先找出峰值 index，再依序在左半邊（遞增區）和右半邊（遞減區）做 binary search。
+# 這題分三個步驟：先找出峰值 index，再依序在左半邊（遞增區）和右半邊（遞減區）各做一次 binary search。
 #
 # 第一步：找峰值
 # left 設 0，right 設 mountainArr.length() - 1，用 while left < right（因為峰值本身可能是 middle，
@@ -14,23 +14,26 @@
 #   否則代表已經過了峰值（在下坡），峰值在左側（含 middle 本身），right 移到 middle。
 # 迴圈結束時 left == right，就是峰值的 index，存到 peak。
 #
-# 第二步：判斷 target 落在哪一段
-# 用 mountainArr.get(0) <= target <= mountainArr.get(peak) 判斷 target 是否落在左半邊（遞增區）的範圍內。
+# 第二步：在左半邊（遞增區）搜尋
+# 在 [0, peak] 這段用標準遞增 binary search（跟 0704 一樣的方向）找 target，找到就直接回傳。
+# 原本想用數值範圍（mountainArr.get(0) <= target <= mountainArr.get(peak)）先判斷 target
+# 該往哪一段找，但這個做法有漏洞：數值落在範圍內不代表 target 真的存在於那一段裡
+# （例如 target 剛好等於右半邊某個值，但數值大小也介於左半邊的最小最大值之間），
+# 所以改成兩段都各自搜尋一次，不依賴範圍判斷。
 #
-# 第三步：對應區間做標準 binary search
-# 如果 target 在左半邊範圍內，在 [0, peak] 這段用標準遞增 binary search（跟 0704 一樣的方向）。
-# 否則在 [peak, length-1] 這段做搜尋，但因為這段是遞減的，方向要反過來：
+# 第三步：如果左半邊沒找到，在右半邊（遞減區）搜尋
+# 在 [peak, length-1] 這段做搜尋，但因為這段是遞減的，方向要反過來：
 #   如果 get(middle) > target（太大了），要往右找更小的值，left 移到 middle + 1；
 #   如果 get(middle) < target（太小了），要往左找更大的值，right 移到 middle - 1。
-# 兩段都用 while left <= right（因為都用 middle ± 1 跳過 middle，不保留它）。
-# 找到就回傳 middle，都找不到則回傳 -1。
-# 題目允許回傳任何一個符合條件的 index，所以先搜左半邊、找不到才搜右半邊即可，不需要比較挑選最小值。
+# 兩段搜尋都用 while left <= right（因為都用 middle ± 1 跳過 middle，不保留它）。
+# 兩段都找不到則回傳 -1。
+# 題目允許回傳任何一個符合條件的 index，所以先搜左半邊、找不到才搜右半邊即可。
 
 # Pattern 筆記：
-# 這題的 pattern 是「先用 binary search 找峰值，再依峰值切成遞增/遞減兩段分別做 binary search」，
+# 這題的 pattern 是「先用 binary search 找峰值，再依峰值切成遞增/遞減兩段，各自獨立做一次 binary search」，
 # 下次看到「山脈陣列（先增後減）+ 找特定值」的特徵就用這個方法。
-# 關鍵是理解：遞減區間一樣可以用 binary search，只是判斷方向要反過來
-# （值太大時要往右找、值太小時要往左找，跟標準遞增陣列相反）。
+# 兩個關鍵點：(1) 遞減區間一樣可以用 binary search，只是判斷方向要反過來；
+# (2) 不要用數值範圍判斷該搜哪一段，數值落在範圍內不保證真的存在於那一段，兩段都搜一次才保險。
 
 # Time complexity: O(log n)，三次 binary search 各自 O(log n)
 # Space complexity: O(1)
@@ -47,26 +50,25 @@ class Solution:
                 right = middle
         peak = left  # 峰值的 index
 
-        if mountainArr.get(0) <= target <= mountainArr.get(peak):  # target 在左半邊（遞增區）範圍內
-            left = 0
-            right = peak
-            while left <= right:  # 標準遞增 binary search
-                middle = (left + right) // 2
-                if mountainArr.get(middle) == target:
-                    return middle
-                elif mountainArr.get(middle) > target:
-                    right = middle - 1
-                else:
-                    left = middle + 1
-        else:  # target 在右半邊（遞減區）
-            left = peak
-            right = mountainArr.length() - 1
-            while left <= right:  # 遞減陣列的 binary search，方向相反
-                middle = (left + right) // 2
-                if mountainArr.get(middle) == target:
-                    return middle
-                elif mountainArr.get(middle) > target:  # 太大了，往右找更小的值
-                    left = middle + 1
-                else:  # 太小了，往左找更大的值
-                    right = middle - 1
-        return -1  # 都找不到
+        left = 0  # 左半邊（遞增區）搜尋範圍
+        right = peak
+        while left <= right:  # 標準遞增 binary search
+            middle = (left + right) // 2
+            if mountainArr.get(middle) == target:
+                return middle
+            elif mountainArr.get(middle) > target:
+                right = middle - 1
+            else:
+                left = middle + 1
+
+        left = peak  # 右半邊（遞減區）搜尋範圍
+        right = mountainArr.length() - 1
+        while left <= right:  # 遞減陣列的 binary search，方向相反
+            middle = (left + right) // 2
+            if mountainArr.get(middle) == target:
+                return middle
+            elif mountainArr.get(middle) > target:  # 太大了，往右找更小的值
+                left = middle + 1
+            else:  # 太小了，往左找更大的值
+                right = middle - 1
+        return -1  # 兩段都找不到
